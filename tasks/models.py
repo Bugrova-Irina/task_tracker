@@ -13,7 +13,7 @@ class Task(models.Model):
         (COMPLETED, "Завершена"),
     ]
 
-    task = models.CharField(
+    title = models.CharField(
         max_length=250,
         verbose_name="Название задачи",
         help_text="укажите название задачи",
