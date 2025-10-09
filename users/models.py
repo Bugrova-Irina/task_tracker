@@ -36,6 +36,14 @@ class User(AbstractUser):
         verbose_name="Аватар",
         help_text="Добавьте аватар",
     )
+    owner = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        verbose_name="Владелец пользователя",
+        help_text="Укажите владельца пользователя",
+    )
 
     # Авторизация по email
     USERNAME_FIELD = "email"
