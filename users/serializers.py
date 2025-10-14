@@ -1,26 +1,51 @@
+from rest_framework.fields import SerializerMethodField, IntegerField
 from rest_framework.serializers import ModelSerializer
 
+from tasks.serializers import UserTaskSerializer
 from users.models import User
 
 
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        fields = (
+            "id",
+            "email",
+            "name",
+            "phone",
+            "position_at_work",
+            "avatar",
+            "password"
+        )
         extra_kwargs = {
             "password": {"write_only": True}  # Пароль только для записи
         }
 
-    def update(self, instance, validated_data):
+    def create(self, validated_data):
         """Обновление пользователя с хешированием пароля"""
-        password = validated_data.pop("password", None)
+        password = validated_data.pop("password")
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
+        return user
 
-        # Обновляем остальные поля
-        instance = super().update(instance, validated_data)
 
-        # Если передан пароль, хешируем его
-        if password:
-            instance.set_password(password)
-            instance.save()
+class UserWithTasksSerializer(ModelSerializer):
+    """Сериализатор списка пользователей с задачами"""
+    tasks = SerializerMethodField()
+    count_active_tasks = IntegerField(read_only=True)
 
-        return instance
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "name",
+            "email",
+            "position_at_work",
+            "tasks",
+            "count_active_tasks",
+        )
+
+    def get_tasks(self, obj):
+        # Получаем задачи, где пользователь является исполнителем
+        tasks = obj.executor_tasks.all()
+        return UserTaskSerializer(tasks, many=True).data
