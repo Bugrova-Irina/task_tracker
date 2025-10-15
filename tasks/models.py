@@ -1,7 +1,5 @@
 from django.db import models
 
-import users.models
-
 
 class Task(models.Model):
     """Модель задачи"""
