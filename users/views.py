@@ -1,6 +1,7 @@
 from django.db.models import Count, Q
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, DestroyAPIView, ListAPIView
+from rest_framework.generics import (CreateAPIView, DestroyAPIView,
+                                     ListAPIView, RetrieveUpdateAPIView)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -37,8 +38,7 @@ class UserListAPIView(ListAPIView):
         # Аннотируем количество активных задач и сортируем по убыванию
         queryset = User.objects.annotate(
             count_active_tasks=Count(
-                "executor_tasks",
-                filter=Q(executor_tasks__status=Task.ACTIVE)
+                "executor_tasks", filter=Q(executor_tasks__status=Task.ACTIVE)
             )
         ).order_by("-count_active_tasks")
 
@@ -57,16 +57,20 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
 
     def get_object(self):
         # Менеджер может смотреть любого пользователя через ID в URL
-        if (self.request.user.groups.filter(name="managers").exists() and
-            "pk" in self.kwargs):
+        if (
+            self.request.user.groups.filter(name="managers").exists()
+            and "pk" in self.kwargs
+        ):
             return User.objects.get(pk=self.kwargs["pk"])
         # Обычный пользователь может работать только со своим профилем
         return self.request.user
 
     def perform_update(self, serializer):
         # Менеджер не может менять пароль других пользователей
-        if (self.request.user.groups.filter(name="managers").exists() and
-            self.get_object() != self.request.user):
+        if (
+            self.request.user.groups.filter(name="managers").exists()
+            and self.get_object() != self.request.user
+        ):
             if "password" in serializer.validated_data:
                 del serializer.validated_data["password"]
         super().perform_update(serializer)

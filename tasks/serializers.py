@@ -13,6 +13,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class UserTaskSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения задач пользователя"""
+
     class Meta:
         model = Task
         fields = ("title", "time", "status")
@@ -22,6 +23,7 @@ class ManagerTaskSerializer(serializers.ModelSerializer):
     """
     Сериализатор задач для менеджера - может менять только исполнителя
     """
+
     class Meta:
         model = Task
         fields = "__all__"
@@ -34,9 +36,11 @@ class ManagerTaskSerializer(serializers.ModelSerializer):
         # Проверяем попытку пользователя изменить read-only поля
         for field_name in read_only_fields:
             if field_name in data:
-                raise serializers.ValidationError({
-                    field_name: f"Поле '{field_name}' не может быть изменено менеджером"
-                })
+                raise serializers.ValidationError(
+                    {
+                        field_name: f"Поле '{field_name}' не может быть изменено менеджером"
+                    }
+                )
 
         return super().to_internal_value(data)
 

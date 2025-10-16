@@ -1,4 +1,4 @@
-from rest_framework.fields import SerializerMethodField, IntegerField
+from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 
 from tasks.serializers import UserTaskSerializer
@@ -16,11 +16,9 @@ class UserSerializer(ModelSerializer):
             "phone",
             "position_at_work",
             "avatar",
-            "password"
+            "password",
         )
-        extra_kwargs = {
-            "password": {"write_only": True}  # Пароль только для записи
-        }
+        extra_kwargs = {"password": {"write_only": True}}  # Пароль только для записи
 
     def create(self, validated_data):
         """Обновление пользователя с хешированием пароля"""
@@ -32,6 +30,7 @@ class UserSerializer(ModelSerializer):
 
 class UserWithTasksSerializer(ModelSerializer):
     """Сериализатор списка пользователей с задачами"""
+
     tasks = SerializerMethodField()
     count_active_tasks = IntegerField(read_only=True)
 

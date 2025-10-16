@@ -1,4 +1,3 @@
-from isort.wrap_modes import vertical_hanging_indent
 from rest_framework import permissions
 
 
@@ -37,7 +36,10 @@ class IsOwnerOrManager(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Суперпользователь и менеджер имеют доступ ко всем объектам
-        if request.user.is_superuser or request.user.groups.filter(name="managers").exists():
+        if (
+            request.user.is_superuser
+            or request.user.groups.filter(name="managers").exists()
+        ):
             return True
         # Обычный пользователь имеет доступ только к своим объектам
         if hasattr(obj, "owner"):

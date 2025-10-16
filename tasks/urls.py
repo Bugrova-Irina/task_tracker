@@ -1,9 +1,10 @@
 from django.urls import path
 
 from tasks.apps import TasksConfig
-from tasks.views import (TaskListAPIView, TaskRetrieveAPIView,
-                         TaskUpdateAPIView, TaskCreateAPIView,
-                         TaskDestroyAPIView, TasksWithoutExecutorListAPIView, ImportantTaskWithCandidatesAPIView)
+from tasks.views import (ImportantTaskWithCandidatesAPIView, TaskCreateAPIView,
+                         TaskDestroyAPIView, TaskListAPIView,
+                         TaskRetrieveAPIView, TasksWithoutExecutorListAPIView,
+                         TaskUpdateAPIView)
 
 app_name = TasksConfig.name
 
@@ -13,6 +14,14 @@ urlpatterns = [
     path("<int:pk>/update/", TaskUpdateAPIView.as_view(), name="task-update"),
     path("create/", TaskCreateAPIView.as_view(), name="task-create"),
     path("<int:pk>/delete/", TaskDestroyAPIView.as_view(), name="task-delete"),
-    path("no-executor/", TasksWithoutExecutorListAPIView.as_view(), name="tasks-without-executor"),
-    path("important-with-candidates/", ImportantTaskWithCandidatesAPIView.as_view(), name="important-tasks-candidates"),
+    path(
+        "no-executor/",
+        TasksWithoutExecutorListAPIView.as_view(),
+        name="tasks-without-executor",
+    ),
+    path(
+        "important-with-candidates/",
+        ImportantTaskWithCandidatesAPIView.as_view(),
+        name="important-tasks-candidates",
+    ),
 ]

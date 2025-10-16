@@ -1,16 +1,16 @@
-from pydoc import pager
-
-from django.core.serializers import serialize
-from django.db.models import Q, Count
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
+from django.db.models import Count, Q
+from rest_framework.generics import (CreateAPIView, DestroyAPIView,
+                                     ListAPIView, RetrieveAPIView,
+                                     UpdateAPIView)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from tasks.models import Task
 from tasks.pagination import CustomPagination
-from tasks.serializers import TaskSerializer, ManagerTaskSerializer, TaskWithCandidatesSerializer
+from tasks.serializers import (ManagerTaskSerializer, TaskSerializer,
+                               TaskWithCandidatesSerializer)
 from users.models import User
-from users.permissions import IsOwner, IsOwnerOrManager, IsSuperuser
+from users.permissions import IsOwnerOrManager, IsSuperuser
 
 
 class TaskCreateAPIView(CreateAPIView):
@@ -22,7 +22,7 @@ class TaskCreateAPIView(CreateAPIView):
 
     def perform_create(self, serializer):
         # Назначение пользователя владельцем задачи
-        serializer.save(owner = self.request.user)
+        serializer.save(owner=self.request.user)
 
 
 class TaskListAPIView(ListAPIView):
@@ -34,7 +34,10 @@ class TaskListAPIView(ListAPIView):
 
     def get_queryset(self):
         # Менеджер видит все задачи
-        if self.request.user.is_superuser or self.request.user.groups.filter(name="managers").exists():
+        if (
+            self.request.user.is_superuser
+            or self.request.user.groups.filter(name="managers").exists()
+        ):
             return Task.objects.all()
         # Обычный пользователь видит только свои задачи
         return Task.objects.filter(owner=self.request.user)
@@ -45,22 +48,21 @@ class TasksWithoutExecutorListAPIView(ListAPIView):
     Вывод списка задач без исполнителя, от
     которых зависят другие задачи, взятые в работу
     """
+
     serializer_class = TaskSerializer
     permission_classes = (IsAuthenticated,)
     pagination_class = CustomPagination
 
     def get_queryset(self):
         # Базовый queryset - активные задачи без исполнителя
-        base_queryset = Task.objects.filter(
-            status=Task.ACTIVE,
-            executor__isnull=True
-        )
+        base_queryset = Task.objects.filter(status=Task.ACTIVE, executor__isnull=True)
 
         # Подзапрос для поиска зависимых активных задач с исполнителем
         # Ищем как родительские, так и дочерние зависимости
         dependent_tasks_filter = Q(
             # Эта задача является родителем для активных задач с исполнителем
-            Q(task__status=Task.ACTIVE, task__executor__isnull=False) |
+            Q(task__status=Task.ACTIVE, task__executor__isnull=False)
+            |
             # Эта задача является дочерней у активных задач с исполнителем
             Q(parent_task__status=Task.ACTIVE, parent_task__executor__isnull=False)
         )
@@ -69,7 +71,10 @@ class TasksWithoutExecutorListAPIView(ListAPIView):
         queryset = base_queryset.filter(dependent_tasks_filter).distinct()
 
         # Фильтрация по владельцу для обычных пользователей
-        if not (self.request.user.is_superuser or self.request.user.groups.filter(name="managers").exists()):
+        if not (
+            self.request.user.is_superuser
+            or self.request.user.groups.filter(name="managers").exists()
+        ):
             queryset = queryset.filter(owner=self.request.user)
 
         return queryset
@@ -80,6 +85,7 @@ class ImportantTaskWithCandidatesAPIView(ListAPIView):
     Вывод списка важных задач (без исполнителя, но с зависимостями)
     с рекомендованными исполнителями
     """
+
     serializer_class = TaskWithCandidatesSerializer
     permission_classes = (IsAuthenticated, IsOwnerOrManager | IsSuperuser)
     pagination_class = CustomPagination
@@ -87,26 +93,27 @@ class ImportantTaskWithCandidatesAPIView(ListAPIView):
     def get_queryset(self):
         # Получаем важные задачи - активные, без исполнителя
         # от которых зависят другие задачи
-        important_tasks = Task.objects.filter(
-            status=Task.ACTIVE,
-            executor__isnull=True
-        ).filter(
-            Q(task__status=Task.ACTIVE, task__executor__isnull=False) |
-            Q(parent_task__status=Task.ACTIVE, parent_task__executor__isnull=False)
-        ).distinct()
+        important_tasks = (
+            Task.objects.filter(status=Task.ACTIVE, executor__isnull=True)
+            .filter(
+                Q(task__status=Task.ACTIVE, task__executor__isnull=False)
+                | Q(
+                    parent_task__status=Task.ACTIVE, parent_task__executor__isnull=False
+                )
+            )
+            .distinct()
+        )
 
         # Аннотируем пользователей с количеством активных задач
         users_with_counts = User.objects.annotate(
             active_tasks_count=Count(
-                "executor_tasks",
-                filter=Q(executor_tasks__status=Task.ACTIVE)
+                "executor_tasks", filter=Q(executor_tasks__status=Task.ACTIVE)
             )
         )
 
         # Создаем словарь для быстрого доступа к количеству задач по ID пользователя
         user_tasks_count = {
-            user.id: user.active_tasks_count
-            for user in users_with_counts
+            user.id: user.active_tasks_count for user in users_with_counts
         }
 
         # Находим минимальное количество задач
@@ -117,7 +124,8 @@ class ImportantTaskWithCandidatesAPIView(ListAPIView):
 
         # Получаем наименее загруженных пользователей
         least_loaded_users = [
-            user for user in users_with_counts
+            user
+            for user in users_with_counts
             if user.active_tasks_count == min_tasks_count
         ]
 
@@ -135,17 +143,18 @@ class ImportantTaskWithCandidatesAPIView(ListAPIView):
                     if parent_executor_count <= min_tasks_count + 2:
                         # Находим полный объект пользователя
                         parent_executor = next(
-                            (user for user in users_with_counts if user.id == parent_executor_id),
-                            None
+                            (
+                                user
+                                for user in users_with_counts
+                                if user.id == parent_executor_id
+                            ),
+                            None,
                         )
                         if parent_executor and parent_executor not in candidates:
                             candidates.append(parent_executor)
 
             # Создаем объект результата
-            result.append({
-                "task": task,
-                "candidates": candidates
-            })
+            result.append({"task": task, "candidates": candidates})
 
         return result
 
