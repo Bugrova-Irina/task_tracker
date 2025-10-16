@@ -11,7 +11,8 @@ class UserSerializer(ModelSerializer):
         fields = (
             "id",
             "email",
-            "name",
+            "first_name",
+            "last_name",
             "phone",
             "position_at_work",
             "avatar",
@@ -38,7 +39,8 @@ class UserWithTasksSerializer(ModelSerializer):
         model = User
         fields = (
             "id",
-            "name",
+            "first_name",
+            "last_name",
             "email",
             "position_at_work",
             "tasks",

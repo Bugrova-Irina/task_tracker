@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from tasks.models import Task
+from users.models import User
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -38,3 +39,27 @@ class ManagerTaskSerializer(serializers.ModelSerializer):
                 })
 
         return super().to_internal_value(data)
+
+
+class SimpleUserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    active_tasks_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ("id", "full_name", "active_tasks_count")
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
+
+
+class SimpleTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ("id", "title", "time")
+
+
+class TaskWithCandidatesSerializer(serializers.Serializer):
+    task = SimpleTaskSerializer()
+    deadline = serializers.DateTimeField(source="task.time")
+    candidates = SimpleUserSerializer(many=True)
