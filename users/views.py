@@ -55,6 +55,13 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated, IsOwnerOrManager)
 
+    def get_queryset(self):
+        """Метод для совместимости с drf-yasg"""
+        if getattr(self, "swagger_fake_view", False):
+            # Для генерации схемы возвращаем пустой queryset
+            return User.objects.none()
+        return User.objects.all()
+
     def get_object(self):
         # Менеджер может смотреть любого пользователя через ID в URL
         if (

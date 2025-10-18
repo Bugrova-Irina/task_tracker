@@ -69,6 +69,7 @@
  - isort
  - ipython
  - coverage
+ - drf-yasg
 
 
 В качестве базы данных используется PostgreSQL
@@ -115,6 +116,9 @@ poetry add ipython
 ```
 ```
 poetry add coverage
+```
+```
+poetry add drf-yasg
 ```
 
 3. Запустите Redis
@@ -332,13 +336,13 @@ Workflow запускается при каждом push в репозитори
 на удаленный сервер. Все чувствительные данные вынесены в переменные окружения и 
 подключены к workflow через Secrets GitHub. В secrets and variables задайте секреты
 
-DEPLOY_DIR
-DOCKER_HUB_ACCESS_TOKEN
-DOCKER_HUB_USERNAME
-SECRET_KEY
-SERVER_IP
-SSH_KEY
-SSH_USER
+- DEPLOY_DIR
+- DOCKER_HUB_ACCESS_TOKEN
+- DOCKER_HUB_USERNAME
+- SECRET_KEY
+- SERVER_IP
+- SSH_KEY
+- SSH_USER
 
 Проверьте работу приложения по адресу http://your_server_name/tasks/
 
@@ -384,6 +388,12 @@ coverage html
 ## Документация:
 
 Для проекта подключен и настроен вывод документации с помощью drf-yasg.
+```
+http://127.0.0.1:8000/redoc/
+```
+```
+http://127.0.0.1:8000/swagger/
+```
 
 ## Лицензия:
 
