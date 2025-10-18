@@ -53,6 +53,11 @@
 
 Добавлены тесты для tasks и users.
 
+Настроена API-документация.
+
+Настроена защита пользователей от несанкционированного доступа к данным на разных доменах
+с помощью CORS.
+
 ## Требования к окружению:
 
 Установите:
@@ -70,6 +75,7 @@
  - ipython
  - coverage
  - drf-yasg
+ - django-cors-headers
 
 
 В качестве базы данных используется PostgreSQL
@@ -119,6 +125,9 @@ poetry add coverage
 ```
 ```
 poetry add drf-yasg
+```
+```
+poetry add django-cors-headers
 ```
 
 3. Запустите Redis
