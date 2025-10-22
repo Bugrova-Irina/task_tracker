@@ -14,7 +14,7 @@ class UserTestCase(APITestCase):
             email="admin@example.com",
             first_name="Admin",
             last_name="Adminov",
-            position_at_work="Superuser"
+            position_at_work="Superuser",
         )
         self.user.set_password("12345")
         self.user.save()
@@ -38,7 +38,7 @@ class UserTestCase(APITestCase):
             "first_name": "Ivan",
             "last_name": "Ivanov",
             "position_at_work": "programmer",
-            "password": "12345"
+            "password": "12345",
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

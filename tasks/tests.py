@@ -12,9 +12,7 @@ class TaskTestCase(APITestCase):
     def setUp(self):
         # Экземпляр пользователя
         self.user = User.objects.create(
-            email="admin@example.com",
-            first_name="Admin",
-            last_name="Adminov"
+            email="admin@example.com", first_name="Admin", last_name="Adminov"
         )
         # Экземпляр задачи
         self.task = Task.objects.create(
@@ -106,13 +104,13 @@ class ImportantTaskTestCase(APITestCase):
             email="user1@example.com",
             first_name="User1",
             last_name="Testov",
-            position_at_work="Developer"
+            position_at_work="Developer",
         )
         self.user2 = User.objects.create(
             email="user2@example.com",
             first_name="User2",
             last_name="Testov",
-            position_at_work="Developer"
+            position_at_work="Developer",
         )
 
         # Создаем важную задачу
@@ -132,7 +130,7 @@ class ImportantTaskTestCase(APITestCase):
             status="active",
             parent_task=self.important_task,
             executor=self.user2,
-            owner=self.user1
+            owner=self.user1,
         )
 
         # Аутентификация первого пользователя

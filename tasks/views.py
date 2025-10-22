@@ -62,9 +62,8 @@ class TasksWithoutExecutorListAPIView(ListAPIView):
         dependent_tasks_filter = Q(
             # Эта задача является родителем для активных задач с исполнителем
             Q(task__status=Task.ACTIVE, task__executor__isnull=False)
-            |
+            | Q(parent_task__status=Task.ACTIVE, parent_task__executor__isnull=False)
             # Эта задача является дочерней у активных задач с исполнителем
-            Q(parent_task__status=Task.ACTIVE, parent_task__executor__isnull=False)
         )
 
         # Применяем фильтр зависимых задач
