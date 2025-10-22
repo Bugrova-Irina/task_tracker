@@ -130,8 +130,6 @@ poetry add drf-yasg
 poetry add django-cors-headers
 ```
 
-3. Запустите Redis
-
 ## Использование:
 
 После запуска сервера перейдите по ссылке http://127.0.0.1:8000/tasks/.
@@ -165,7 +163,7 @@ docker-compose exec web python manage.py migrate
 
 Создайте учетную запись администратора
 ```
-docker-compose exec web python manage.py createsuperadmin
+docker-compose exec web python manage.py createadmin
 ```
 
 Проверка работы приложения:
@@ -182,32 +180,14 @@ docker-compose exec db psql -U your_database_user -d your_database_name -c "\dt"
 ```
 Результат: должен отобразить список таблиц в базе данных.
 
-3. Redis:
-```
-docker-compose exec redis redis-cli ping
-```
-Результат: должен вернуть PONG.
-
-4. Celery Worker:
-```
-docker-compose logs celery
-```
-Результат: в логах должны быть сообщения об успешном запуске worker.
-
-5. Celery Beat:
-```
-docker-compose logs beat
-```
-Результат: в логах должны быть сообщения о запуске планировщика.
-
-6. Административная панель Django:
+3. Административная панель Django:
 Откройте в браузере http://localhost:8002/admin/
 
-7. Остановка контейнеров:
+4. Остановка контейнеров:
 ```
 docker-compose down
 ```
-8. Перезапуск с пересборкой образов:
+5. Перезапуск с пересборкой образов:
 ```
 docker-compose up -d --build
 ```
