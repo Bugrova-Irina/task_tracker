@@ -76,6 +76,7 @@
  - coverage
  - drf-yasg
  - django-cors-headers
+ - gunicorn
 
 
 В качестве базы данных используется PostgreSQL
@@ -84,8 +85,10 @@
 
 1. Клонируйте репозиторий:
 ```
-https://github.com/Bugrova-Irina/task_tracker/
+git clone https://github.com/Bugrova-Irina/task_tracker/
+cd task_tracker
 ```
+
 2. Установите зависимости:
 ```
 poetry shell
@@ -129,16 +132,18 @@ poetry add drf-yasg
 ```
 poetry add django-cors-headers
 ```
+```
+poetry add gunicorn
+```
+
+3. Создайте файл `.env` на основе `.env.sample`
+4. Заполните переменные окружения в `.env` файле.
 
 ## Использование:
 
 После запуска сервера перейдите по ссылке http://127.0.0.1:8000/tasks/.
 
-### Запуск проекта с использованием Docker Compose:
-В корне проекта должны быть файлы:
-- Dockerfile
-- docker-compose.yml
-- .env (создайте на основе .env.sample со своими значениями)
+### Запуск проекта с использованием Docker Compose (для разработки):
 
 #### Команды для запуска:
 Выполните сборку образов:
@@ -158,7 +163,7 @@ docker-compose ps
 
 Примените миграции базы данных:
 ```
-docker-compose exec web python manage.py migrate
+docker-compose exec backend python manage.py migrate
 ```
 
 Создайте учетную запись администратора
@@ -167,10 +172,10 @@ docker-compose exec web python manage.py createadmin
 ```
 
 Проверка работы приложения:
-Перейдите по адресу: http://localhost:8002/tasks/
+Перейдите по адресу: http://localhost:8080/tasks/
 
 #### Проверка работоспособности сервисов
-1. Веб-сервис (Django). Откройте в браузере http://localhost:8002/ или выполните команду:
+1. Веб-сервис (Django):
 ```
 curl -X GET http://localhost:8002/tasks/
 ```
@@ -181,7 +186,7 @@ docker-compose exec db psql -U your_database_user -d your_database_name -c "\dt"
 Результат: должен отобразить список таблиц в базе данных.
 
 3. Административная панель Django:
-Откройте в браузере http://localhost:8002/admin/
+Откройте в браузере http://localhost:8080/admin/
 
 4. Остановка контейнеров:
 ```
@@ -196,10 +201,11 @@ docker-compose up -d --build
 docker-compose logs [service_name]
 ```
 
-## Настройка удаленного сервера и деплоя
-1. Установите Python 3.13.
-2. Установите Django версии 3.2.
-3. Установите Gunicorn и Nginx для обработки запросов.
+## Автоматический деплой на продакшн-сервер
+Проект настроен для автоматического деплоя на сервер при каждом пуше в основную ветку
+репозитория.
+
+## Настройка удаленного сервера для деплоя
 
 #### Подключение к серверу:
 ```
@@ -230,136 +236,106 @@ sudo ufw allow 443
 sudo ufw enable
 ```
 
-### Настройка сервера
-1. Настройте SSH-доступ с использованием SSH-ключей для повышения безопасности.
-2. Закройте все ненужные порты, оставив открытыми только те, которые необходимы (например, 80 для HTTP и 443 для HTTPS).
-3. Установите и настройте Supervisor для автоматического перезапуска приложения при изменениях.
-
-### Создание пользователя для деплоя
-Создание пользователя
-```
-sudo adduser deployer
-```
-```
-sudo usermod -aG sudo deployer
-```
-
-Настройка SSH-доступа
-```
-sudo mkdir /home/deployer/.ssh
-```
-```
-sudo cp ~/.ssh/authorized_keys /home/deployer/.ssh/
-```
-```
-sudo chown -R deployer:deployer /home/deployer/.ssh
-```
-```
-sudo chmod 700 /home/deployer/.ssh
-```
-```
-sudo chmod 600 /home/deployer/.ssh/authorized_keys
-```
-
-### Настройка Docker и Docker Compose
-#### Установка Docker
+### Установка Docker и Docker Compose:
 ```
 curl -fsSL https://get.docker.com -o get-docker.sh
 ```
 ```
 sudo sh get-docker.sh
 ```
-#### Добавление пользователя в группу docker
 ```
 sudo usermod -aG docker $USER
 ```
 ```
-sudo usermod -aG docker deployer
-```
-#### Перезагрузка сессии
-```
 newgrp docker
 ```
-#### Проверка установки
 ```
 docker --version
 ```
-#### Установка Docker Compose
-#### Скачивание последней версии
 ```
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ```
-#### Назначение прав
 ```
 sudo chmod +x /usr/local/bin/docker-compose
 ```
-#### Проверка установки
 ```
 docker-compose --version
 ```
-### Деплой
-1. Склонируйте репозиторий на сервер.
-2. Выполните миграции базы данных с помощью команды python manage.py migrate.
-3. Запустите сервер с помощью Gunicorn: gunicorn myproject.wsgi:application.
-4. Настройте Nginx для проксирования запросов к Gunicorn.
+#### Подготовка директории на сервере:
+```
+sudo mkdir -p /opt/task_tracker
+sudo chown $USER:$USER /opt/task_tracker
+cd /opt/task_tracker
+```
+### Настройка CI/CD с GitHub Actions
 
-### Выполните на сервере команды:
-На сервере настроен systemd для автоматического управления.
-#### Создание systemd сервиса
+#### Необходимые секреты в GitHub:
+
+В настройках репозитория GitHub добавьте следующие секреты:
+
+- `DEPLOY_DIR` - `/opt/task_tracker`
+- `DOCKER_HUB_ACCESS_TOKEN` - токен доступа Docker Hub
+- `DOCKER_HUB_USERNAME` - ваш логин Docker Hub
+- `SECRET_KEY` - секретный ключ Django
+- `SERVER_IP` - IP адрес сервера
+- `SSH_KEY` - приватный SSH ключ для доступа к серверу
+- `SSH_USER` - пользователь сервера
+
+#### Процесс деплоя:
+
+1. При пуше в основную ветку автоматически запускается GitHub Actions workflow
+2. Выполняются тесты и линтинг кода
+3. Собирается Docker образ и пушится в Docker Hub
+4. Образ автоматически деплоится на продакшен-сервер
+
+### Ручной деплой на сервер
+
+#### На сервере создайте необходимые файлы:
+
+1. `docker-compose.prod.yml` - конфигурация для продакшена
+2. `.env` - переменные окружения
+3. `nginx.conf` - конфигурация nginx
+4. `deploy.sh` - скрипт деплоя
+
+#### Пример deploy.sh:
 ```
-sudo nano /etc/systemd/system/myapp.service
+bash
+#!/bin/bash
+cd /opt/task_tracker
+docker-compose -f docker-compose.prod.yml down
+docker pull your-dockerhub-username/task_tracker:latest
+docker-compose -f docker-compose.prod.yml up -d
+docker image prune -f
+echo "Deployment completed successfully!"
+```
+Сделайте скрипт исполняемым:
+```
+chmod +x deploy.sh
+```
+Запуск деплоя:
+```
+./deploy.sh
 ```
 
-Приложение будет автоматически запускаться и перезапускаться при изменениях или сбоях
+## Проверка работы приложения на сервере
+После деплоя проверьте:
+1. Статус контейнеров:
 ```
-sudo systemctl daemon-reload
+docker-compose -f docker-compose.prod.yml ps
 ```
+2. Логи приложения:
 ```
-sudo systemctl restart myapp.service
+docker-compose -f docker-compose.prod.yml logs backend
 ```
+3. Доступность API:
 ```
-sudo systemctl status myapp.service
+curl http://localhost/tasks/
 ```
-Удаленный сервер может автоматически перезагружать приложение при внесении изменений.
-Workflow запускается при каждом push в репозиторий. Проект автоматически деплоится 
-на удаленный сервер. Все чувствительные данные вынесены в переменные окружения и 
-подключены к workflow через Secrets GitHub. В secrets and variables задайте секреты
-
-- DEPLOY_DIR
-- DOCKER_HUB_ACCESS_TOKEN
-- DOCKER_HUB_USERNAME
-- SECRET_KEY
-- SERVER_IP
-- SSH_KEY
-- SSH_USER
-
-Проверьте работу приложения по адресу http://your_server_name/tasks/
-
-#### Команды для мониторинга работы приложения на сервере
-#### Статус приложения
-```
-sudo systemctl status myapp.service
-```
-#### Логи приложения
-```
-sudo journalctl -u myapp.service -f
-```
-#### Логи Docker контейнера
-```
-docker logs myapp
-```
-#### Использование ресурсов
-```
-docker stats myapp
-```
-#### Проверка сети
-```
-sudo netstat -tulpn | grep :80
-```
-#### Проверка доступности
-```
-curl -I http://localhost/
-```
+4. Документация:
+- API: http://your-server-ip/tasks/
+- Админка: http://your-server-ip/admin/
+- Swagger: http://your-server-ip/swagger/
+- ReDoc: http://your-server-ip/redoc/
 
 ## Тестирование:
 
