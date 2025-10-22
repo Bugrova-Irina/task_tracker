@@ -84,11 +84,11 @@ REST_FRAMEWORK = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("NAME"),
-        "USER": os.getenv("USER"),
-        "PASSWORD": os.getenv("PASSWORD"),
-        "HOST": os.getenv("HOST"),
-        "PORT": os.getenv("PORT"),
+        "NAME": os.getenv("NAME", "tasks"),
+        "USER": os.getenv("USER", "postgres"),
+        "PASSWORD": os.getenv("PASSWORD", "12345"),
+        "HOST": os.getenv("HOST", "db"),
+        "PORT": os.getenv("PORT", "5432"),
     }
 }
 
@@ -144,16 +144,27 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
-]
+if not DEBUG:
+    # Security settings
+    SECURE_SSL_REDIRECT = False  # Пока нет HTTPS
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
-"""
-Замените на адрес вашего фронтенд-сервера
-и добавьте адрес бэкенд-сервера
-"""
-CSRF_TRUSTED_ORIGINS = [
-    "https://read-and-write.example.com",
-]
+    # Static files
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [
+        "http://84.201.141.201",  # Замените на адрес вашего фронтенд-сервера
+    ]
+
+    """
+    Замените на адрес вашего фронтенд-сервера
+    и добавьте адрес бэкенд-сервера
+    """
+    CSRF_TRUSTED_ORIGINS = [
+        "http://84.201.141.201",
+    ]
+
+    CORS_ALLOW_ALL_ORIGINS = False
