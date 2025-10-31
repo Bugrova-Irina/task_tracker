@@ -1,0 +1,8 @@
+**
+!config/
+!tasks/
+!users/
+!manage.py
+!poetry.lock
+!pyproject.toml
+!README.md

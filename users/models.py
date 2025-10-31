@@ -12,10 +12,15 @@ class User(AbstractUser):
         verbose_name="Почта",
         help_text="Укажите почту",
     )
-    name = models.CharField(
+    first_name = models.CharField(
         max_length=150,
-        verbose_name="ФИО",
-        help_text="Укажите ФИО"
+        verbose_name="Имя",
+        help_text="Укажите имя",
+    )
+    last_name = models.CharField(
+        max_length=150,
+        verbose_name="Фамилия",
+        help_text="Укажите фамилию",
     )
     phone = models.CharField(
         max_length=35,
@@ -36,6 +41,14 @@ class User(AbstractUser):
         verbose_name="Аватар",
         help_text="Добавьте аватар",
     )
+    owner = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        verbose_name="Владелец пользователя",
+        help_text="Укажите владельца пользователя",
+    )
 
     # Авторизация по email
     USERNAME_FIELD = "email"
@@ -47,4 +60,4 @@ class User(AbstractUser):
         ordering = ["email"]
 
     def __str__(self):
-        return f"{self.name} - {self.position_at_work}"
+        return f"{self.last_name} {self.first_name}- {self.position_at_work}"

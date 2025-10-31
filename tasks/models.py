@@ -13,7 +13,7 @@ class Task(models.Model):
         (COMPLETED, "Завершена"),
     ]
 
-    task = models.CharField(
+    title = models.CharField(
         max_length=250,
         verbose_name="Название задачи",
         help_text="укажите название задачи",
@@ -33,6 +33,7 @@ class Task(models.Model):
         null=True,
         verbose_name="Исполнитель",
         help_text="Укажите исполнителя",
+        related_name="executor_tasks",
     )
     time = models.DateTimeField(
         verbose_name="Когда должно быть готово",
@@ -45,10 +46,20 @@ class Task(models.Model):
         verbose_name="Статус задачи",
         help_text="Укажите статус задачи",
     )
+    owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        verbose_name="Владелец задачи",
+        help_text="Укажите владельца задачи",
+        related_name="owned_tasks",
+    )
 
     class Meta:
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+        ordering = ["-id"]
 
     def __str__(self):
-        return self.task
+        return self.title
